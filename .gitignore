@@ -57,6 +57,9 @@ lerna-debug.log*
 # Backend (Spring Boot / Maven)
 # =========================
 /backend/target/
+/backend/src/main/resources/application-local.yml
+/backend/src/main/resources/application-*.local.yml
+/backend/src/main/resources/application-secrets.yml
 
 # =========================
 # Misc build cache
