@@ -1,0 +1,18 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 确保数据库名 hms_db 正确
+    url: jdbc:mysql://localhost:3306/hms_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true # 开启下划线转驼峰
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 控制台打印SQL
+  global-config:
+    db-config:
+      id-type: auto

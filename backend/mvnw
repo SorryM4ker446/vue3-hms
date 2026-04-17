@@ -1,0 +1,12 @@
+#!/bin/sh
+
+BASEDIR="$(cd "$(dirname "$0")"; pwd -P)"
+WRAPPER_JAR="$BASEDIR/.mvn/wrapper/maven-wrapper.jar"
+
+if [ ! -f "$WRAPPER_JAR" ]; then
+  echo "Could not find $WRAPPER_JAR."
+  echo "Please ensure Maven Wrapper files are present."
+  exit 1
+fi
+
+exec java "-Dmaven.multiModuleProjectDirectory=$BASEDIR" $MAVEN_OPTS -classpath "$WRAPPER_JAR" org.apache.maven.wrapper.MavenWrapperMain "$@"
