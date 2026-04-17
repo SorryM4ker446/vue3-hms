@@ -33,12 +33,15 @@ vue3-hms/
 - Node.js 20+
 - npm 10+
 - Java 17
-- Maven 3.9+
 - MySQL 8+
 
 ## 快速开始
 1. 创建数据库并导入 SQL：`database/hms_db.sql`。
-2. 修改后端数据库连接配置：`backend/src/main/resources/application.yml`。
+2. 按需设置后端环境变量（不设置则使用开发默认值）：
+   - `SPRING_PROFILES_ACTIVE`（默认 `dev`）
+   - `DB_URL` / `DB_USERNAME` / `DB_PASSWORD`
+   - `JWT_SECRET`
+   - `CORS_ALLOWED_ORIGINS`
 3. 启动后端：
 
 ```bash
@@ -51,6 +54,8 @@ cd backend
 ```bash
 cd frontend
 npm install
+# 可选：通过环境变量覆盖后端地址
+# set VITE_API_BASE_URL=http://localhost:8080/api
 npm run dev
 ```
 
@@ -61,11 +66,21 @@ npm run dev
 
 ## API 模块概览
 - 认证: `/api/login`
+- 刷新令牌: `/api/refresh`
 - 仪表盘: `/api/dashboard`
 - 病人管理: `/api/patients`
 - 科室管理: `/api/departments`
 - 用户管理: `/api/users`
 - 病房/床位: `/api/rooms`, `/api/beds`
+
+## 安全与架构优化（已完成）
+- 登录改为 `BCrypt` 校验，兼容历史明文密码并在首次登录后自动升级哈希。
+- 登录响应不再返回 `password` 字段。
+- 增加 JWT 双令牌机制：`accessToken + refreshToken`。
+- 后端新增鉴权拦截器，默认保护 `/api/**`（登录与刷新接口除外）。
+- CORS 改为环境变量白名单，不再使用全开放 `*`。
+- 前端新增 `apiClient`（统一请求、自动携带 token、401 自动刷新重试）。
+- 前端路由改为懒加载，减小首屏包体积。
 
 ## 提交到 GitHub（首次）
 ```bash

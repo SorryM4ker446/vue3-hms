@@ -1,9 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
-
-const API_URL = 'http://localhost:8080/api'
+import apiClient from '@/api/client'
 
 const tableData = ref([])
 const dialogVisible = ref(false)
@@ -20,7 +18,7 @@ onMounted(() => {
 
 const fetchDepartments = async () => {
   try {
-    const res = await axios.get(`${API_URL}/departments`)
+    const res = await apiClient.get('/departments')
     tableData.value = res.data
   } catch (err) {
     ElMessage.error('获取科室数据失败')
@@ -42,10 +40,10 @@ const showEditDialog = (row) => {
 const submitForm = async () => {
   try {
     if (isEdit.value) {
-      await axios.put(`${API_URL}/departments`, form.value)
+      await apiClient.put('/departments', form.value)
       ElMessage.success('科室信息更新成功')
     } else {
-      await axios.post(`${API_URL}/departments`, form.value)
+      await apiClient.post('/departments', form.value)
       ElMessage.success('科室添加成功')
     }
     dialogVisible.value = false
@@ -62,7 +60,7 @@ const handleDelete = async (id) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    await axios.delete(`${API_URL}/departments/${id}`)
+    await apiClient.delete(`/departments/${id}`)
     ElMessage.success('删除成功')
     fetchDepartments()
   } catch (err) {

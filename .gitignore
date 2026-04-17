@@ -50,6 +50,8 @@ lerna-debug.log*
 /frontend/cypress/videos/
 /frontend/cypress/screenshots/
 /frontend/__screenshots__/
+/frontend/src/auto-imports.d.ts
+/frontend/src/components.d.ts
 
 # =========================
 # Backend (Spring Boot / Maven)

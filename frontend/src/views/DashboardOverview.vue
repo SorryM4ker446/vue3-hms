@@ -1,10 +1,9 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue' // 引入 watch
-import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { Search, Refresh } from '@element-plus/icons-vue'
+import apiClient from '@/api/client'
 
-const API_URL = 'http://localhost:8080/api'
 const tableData = ref([])
 const keyword = ref('')
 let searchTimer = null // 新增：定时器变量
@@ -26,7 +25,7 @@ watch(keyword, (newVal) => {
 
 const fetchDashboardView = async () => {
   try {
-    const res = await axios.get(`${API_URL}/dashboard`, {
+    const res = await apiClient.get('/dashboard', {
       params: { keyword: keyword.value } // 关键字带给后端
     })
     tableData.value = res.data
