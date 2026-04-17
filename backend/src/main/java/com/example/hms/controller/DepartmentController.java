@@ -2,6 +2,7 @@ package com.example.hms.controller;
 
 import com.example.hms.entity.Department;
 import com.example.hms.mapper.DepartmentMapper;
+import com.example.hms.security.RequireRoles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,11 +17,14 @@ public class DepartmentController {
     public List<Department> list() { return departmentMapper.selectList(null); }
 
     @PostMapping
+    @RequireRoles({1})
     public void add(@RequestBody Department d) { departmentMapper.insert(d); }
 
     @PutMapping
+    @RequireRoles({1})
     public void update(@RequestBody Department d) { departmentMapper.updateById(d); }
 
     @DeleteMapping("/{id}")
+    @RequireRoles({1})
     public void delete(@PathVariable Integer id) { departmentMapper.deleteById(id); }
 }

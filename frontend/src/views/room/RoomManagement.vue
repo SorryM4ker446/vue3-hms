@@ -1,9 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
-
-const API_URL = 'http://localhost:8080/api'
+import apiClient from '@/api/client'
 
 const rooms = ref([])
 const departments = ref([]) // 用于选择所属科室
@@ -34,7 +32,7 @@ onMounted(() => {
 
 const fetchRooms = async () => {
   try {
-    const res = await axios.get(`${API_URL}/rooms`)
+    const res = await apiClient.get('/rooms')
     rooms.value = res.data
     // 为每个病房加载其床位信息
     for (let room of rooms.value) {
@@ -47,7 +45,7 @@ const fetchRooms = async () => {
 
 const fetchDepartments = async () => {
   try {
-    const res = await axios.get(`${API_URL}/departments`)
+    const res = await apiClient.get('/departments')
     departments.value = res.data
   } catch (err) {
     ElMessage.error('获取科室列表失败')
@@ -56,7 +54,7 @@ const fetchDepartments = async () => {
 
 const fetchBedsByRoomId = async (room) => {
   try {
-    const res = await axios.get(`${API_URL}/rooms/${room.roomId}/beds`);
+    const res = await apiClient.get(`/rooms/${room.roomId}/beds`);
     room.beds = res.data; // 将床位信息挂载到对应的病房对象上
   } catch (err) {
     ElMessage.error(`获取病房 ${room.roomNumber} 的床位失败`);
@@ -94,10 +92,10 @@ const showEditRoomDialog = (row) => {
 const submitRoomForm = async () => {
   try {
     if (isEditRoom.value) {
-      await axios.put(`${API_URL}/rooms`, roomForm.value)
+      await apiClient.put('/rooms', roomForm.value)
       ElMessage.success('病房信息更新成功')
     } else {
-      await axios.post(`${API_URL}/rooms`, roomForm.value)
+      await apiClient.post('/rooms', roomForm.value)
       ElMessage.success('病房添加成功')
     }
     roomDialogVisible.value = false
@@ -114,7 +112,7 @@ const handleDeleteRoom = async (id) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    await axios.delete(`${API_URL}/rooms/${id}`)
+    await apiClient.delete(`/rooms/${id}`)
     ElMessage.success('删除成功')
     fetchRooms()
   } catch (err) {
@@ -135,7 +133,7 @@ const showAddBedDialog = (roomId) => {
 // 修改床位状态（例如：设为维修）
 const updateBedStatus = async (bedId, status) => {
   try {
-    await axios.put(`${API_URL}/rooms/beds/${bedId}/status`, { status });
+    await apiClient.put(`/rooms/beds/${bedId}/status`, { status });
     ElMessage.success('床位状态更新成功');
     fetchRooms(); // 刷新所有病房和床位
   } catch (error) {
@@ -154,7 +152,7 @@ const handleAddBed = async () => {
       status: bedForm.value.status,
       roomId: currentRoomId.value // 使用当前病房ID
     };
-    await axios.post(`${API_URL}/beds`, newBed); // 假设有一个 /api/beds 的新增接口
+    await apiClient.post('/beds', newBed); // 假设有一个 /api/beds 的新增接口
     ElMessage.success('床位添加成功');
     bedDialogVisible.value = false;
     fetchRooms();

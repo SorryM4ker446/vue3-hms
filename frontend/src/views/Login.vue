@@ -1,11 +1,12 @@
 <script setup>
 import { ref } from 'vue'
-import axios from 'axios'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Lock, User } from '@element-plus/icons-vue'
+import apiClient from '@/api/client'
+import { setAuthSession } from '@/utils/auth'
 
 const router = useRouter()
-const API_URL = 'http://localhost:8080/api'
 
 const form = ref({
   username: '',
@@ -20,19 +21,21 @@ const handleLogin = async () => {
 
   loading.value = true
   try {
-    const res = await axios.post(`${API_URL}/login`, form.value)
+    const res = await apiClient.post('/login', form.value)
     
-    if (res.data.success) {
+    if (res.data?.success) {
+      setAuthSession({
+        accessToken: res.data.accessToken,
+        refreshToken: res.data.refreshToken,
+        user: res.data.user
+      })
       ElMessage.success('登录成功')
-      // 1. 将用户信息存入 localStorage
-      localStorage.setItem('user', JSON.stringify(res.data.user))
-      // 2. 跳转到 Dashboard
       router.push('/dashboard')
     } else {
-      ElMessage.error(res.data.message)
+      ElMessage.error(res.data?.message || '用户名或密码错误')
     }
   } catch (error) {
-    ElMessage.error('连接服务器失败')
+    ElMessage.error('登录失败，请检查账号密码或网络连接')
   } finally {
     loading.value = false
   }
@@ -49,7 +52,7 @@ const handleLogin = async () => {
             v-model="form.username" 
             placeholder="用户名 (admin/doctor)" 
             size="large" 
-            prefix-icon="User"
+            :prefix-icon="User"
           />
         </el-form-item>
         <el-form-item>
@@ -58,7 +61,7 @@ const handleLogin = async () => {
             placeholder="密码 (123456)" 
             type="password" 
             size="large" 
-            prefix-icon="Lock"
+            :prefix-icon="Lock"
             show-password
             @keyup.enter="handleLogin"
           />

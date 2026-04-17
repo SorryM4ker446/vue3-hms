@@ -1,14 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
-// 手动引入 ElMessage (解决报错 1 和 3)
 import { ElMessage } from 'element-plus'
+import { clearAuthSession, getAuthUser, hasValidSession } from '@/utils/auth'
 
-import Layout from '../views/layout/Layout.vue'
-import Login from '../views/Login.vue'
-import DashboardOverview from '../views/DashboardOverview.vue'
-import PatientManagement from '../views/patient/PatientManagement.vue'
-import DepartmentManagement from '../views/department/DepartmentManagement.vue'
-import UserManagement from '../views/user/UserManagement.vue'
-import RoomManagement from '../views/room/RoomManagement.vue'
+const Layout = () => import('../views/layout/Layout.vue')
+const Login = () => import('../views/Login.vue')
+const DashboardOverview = () => import('../views/DashboardOverview.vue')
+const PatientManagement = () => import('../views/patient/PatientManagement.vue')
+const DepartmentManagement = () => import('../views/department/DepartmentManagement.vue')
+const UserManagement = () => import('../views/user/UserManagement.vue')
+const RoomManagement = () => import('../views/room/RoomManagement.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -65,28 +65,32 @@ const router = createRouter({
   ]
 })
 
-// 全局路由守卫
 router.beforeEach((to, from, next) => {
-  const userStr = localStorage.getItem('user')
-  const user = userStr ? JSON.parse(userStr) : null;
+  const user = getAuthUser()
+  const loggedIn = hasValidSession()
 
-  if (to.meta.requiresAuth && !user) {
-    ElMessage.warning('请先登录！');
+  if (to.meta.requiresAuth && !loggedIn) {
+    clearAuthSession()
+    ElMessage.warning('请先登录！')
     next('/login')
-  } else if (to.path === '/login' && user) {
-    next('/dashboard')
-  } else if (to.meta.roles && user) {
-    // 核心修复：使用类型断言 (as number[]) 解决报错 2
-    const requiredRoles = to.meta.roles as number[];
-    if (!requiredRoles.includes(user.role)) {
-        ElMessage.error('您没有权限访问该页面！');
-        next('/dashboard')
-    } else {
-        next()
-    }
-  } else {
-    next()
+    return
   }
+
+  if (to.path === '/login' && loggedIn) {
+    next('/dashboard')
+    return
+  }
+
+  if (to.meta.roles && user) {
+    const requiredRoles = to.meta.roles as number[]
+    if (!requiredRoles.includes(user.role)) {
+      ElMessage.error('您没有权限访问该页面！')
+      next('/dashboard')
+      return
+    }
+  }
+
+  next()
 })
 
 export default router

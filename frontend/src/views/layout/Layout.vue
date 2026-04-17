@@ -1,39 +1,59 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter, RouterView } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-
-// Element Plus Icons，确保已在 main.ts 注册
-import { House, UserFilled, OfficeBuilding, Avatar, MessageBox, ArrowRight } from '@element-plus/icons-vue'
+import {
+  House,
+  UserFilled,
+  OfficeBuilding,
+  Avatar,
+  MessageBox,
+  ArrowDown,
+  ArrowRight,
+  Expand,
+  Fold
+} from '@element-plus/icons-vue'
+import { clearAuthSession, getAuthUser, hasValidSession } from '@/utils/auth'
 
 const router = useRouter()
-const isCollapse = ref(false) // 侧边栏是否折叠
-
+const isCollapse = ref(false)
 const currentUser = ref({})
-const userMenus = ref([]) // 用户可见的菜单
+const userMenus = ref([])
+
+const iconMap = {
+  House,
+  UserFilled,
+  OfficeBuilding,
+  Avatar,
+  MessageBox
+}
 
 onMounted(() => {
-  const userStr = localStorage.getItem('user')
-  if (userStr) {
-    currentUser.value = JSON.parse(userStr)
-    filterMenusByRole()
-  } else {
+  if (!hasValidSession()) {
     router.push('/login')
+    return
   }
+
+  const user = getAuthUser()
+  if (!user) {
+    router.push('/login')
+    return
+  }
+
+  currentUser.value = user
+  filterMenusByRole()
 })
 
-// 根据用户角色过滤菜单
 const filterMenusByRole = () => {
-  const allRoutes = router.options.routes.find(r => r.name === 'Layout').children;
-  userMenus.value = allRoutes.filter(route => {
-    // 如果没有 roles 限制，或者用户角色在 roles 数组中，则显示
-    return !route.meta.roles || route.meta.roles.includes(currentUser.value.role);
-  });
-};
+  const layoutRoute = router.options.routes.find((r) => r.name === 'Layout')
+  const allRoutes = layoutRoute?.children || []
+  userMenus.value = allRoutes.filter((route) => {
+    return !route.meta?.roles || route.meta.roles.includes(currentUser.value.role)
+  })
+}
 
-// 退出登录
 const logout = () => {
-  localStorage.removeItem('user')
+  clearAuthSession()
   router.push('/login')
   ElMessage.success('已退出登录')
 }
@@ -41,11 +61,10 @@ const logout = () => {
 
 <template>
   <el-container class="common-layout">
-    <!-- 头部区域 -->
     <el-header class="main-header">
       <div class="header-left">
         <el-icon :size="24" @click="isCollapse = !isCollapse" class="collapse-icon">
-          <component :is="isCollapse ? 'Expand' : 'Fold'"></component>
+          <component :is="isCollapse ? Expand : Fold"></component>
         </el-icon>
         <span class="system-title">医院病房管理系统</span>
       </div>
@@ -67,7 +86,6 @@ const logout = () => {
     </el-header>
 
     <el-container class="main-body">
-      <!-- 侧边栏 -->
       <el-aside :width="isCollapse ? '64px' : '200px'" class="main-aside">
         <el-menu
           :default-active="$route.path"
@@ -78,24 +96,23 @@ const logout = () => {
           text-color="#fff"
           active-text-color="#ffd04b"
         >
-          <el-menu-item 
-            v-for="menu in userMenus" 
-            :key="menu.path" 
+          <el-menu-item
+            v-for="menu in userMenus"
+            :key="menu.path"
             :index="menu.path.startsWith('/') ? menu.path : '/' + menu.path"
           >
-            <el-icon><component :is="menu.meta.icon"></component></el-icon>
+            <el-icon><component :is="iconMap[menu.meta.icon] || House"></component></el-icon>
             <template #title>{{ menu.meta.title }}</template>
           </el-menu-item>
         </el-menu>
       </el-aside>
 
-      <!-- 主要内容区域 -->
       <el-main class="main-content-view">
-        <el-breadcrumb separator-icon="ArrowRight" style="margin-bottom: 20px;">
+        <el-breadcrumb :separator-icon="ArrowRight" style="margin-bottom: 20px;">
           <el-breadcrumb-item :to="{ path: '/dashboard' }">首页</el-breadcrumb-item>
           <el-breadcrumb-item>{{ $route.meta.title }}</el-breadcrumb-item>
         </el-breadcrumb>
-        <router-view /> <!-- 这里显示具体业务页面 -->
+        <router-view />
       </el-main>
     </el-container>
   </el-container>
@@ -137,12 +154,12 @@ const logout = () => {
   color: white;
 }
 .main-body {
-  height: calc(100vh - 60px); /* 减去 header 的高度 */
+  height: calc(100vh - 60px);
 }
 .main-aside {
   background-color: #545c64;
   transition: width 0.3s;
-  overflow-x: hidden; /* 防止滚动条 */
+  overflow-x: hidden;
 }
 .el-menu-vertical-demo:not(.el-menu--collapse) {
   width: 200px;

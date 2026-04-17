@@ -1,10 +1,8 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue' // 1. 引入 watch
-import axios from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Plus, Edit, Delete, Timer, InfoFilled } from '@element-plus/icons-vue'
-
-const API_URL = 'http://localhost:8080/api'
+import apiClient from '@/api/client'
 
 const tableData = ref([])
 const availableBeds = ref([])
@@ -41,7 +39,7 @@ watch(keyword, (newVal) => {
 // 获取列表
 const fetchPatientList = async () => {
   try {
-    const res = await axios.get(`${API_URL}/patients`, {
+    const res = await apiClient.get('/patients', {
       params: { keyword: keyword.value }
     })
     tableData.value = res.data
@@ -53,7 +51,7 @@ const fetchPatientList = async () => {
 // 获取空闲床位
 const fetchBeds = async () => {
   try {
-    const res = await axios.get(`${API_URL}/patients/beds/available`)
+    const res = await apiClient.get('/patients/beds/available')
     availableBeds.value = res.data
   } catch (err) {
     ElMessage.error('无法获取空闲床位')
@@ -79,11 +77,11 @@ const showEditDialog = (row) => {
 const handleSubmit = async () => {
   try {
     if (isEdit.value) {
-      await axios.put(`${API_URL}/patients`, form.value)
+      await apiClient.put('/patients', form.value)
       ElMessage.success('修改成功')
     } else {
       if(!form.value.bedId) return ElMessage.warning('请选择床位')
-      const res = await axios.post(`${API_URL}/patients/admit`, form.value)
+      const res = await apiClient.post('/patients/admit', form.value)
       if (!res.data.success) {
         ElMessage.error(res.data.message)
         return
@@ -102,7 +100,7 @@ const handleSubmit = async () => {
 const handleDischarge = async (patientId) => {
   try {
     await ElMessageBox.confirm('确定为该病人办理出院吗？床位将自动释放。', '提示', { type: 'warning' })
-    const res = await axios.post(`${API_URL}/patients/discharge/${patientId}`)
+    const res = await apiClient.post(`/patients/discharge/${patientId}`)
     if(res.data.success) {
       ElMessage.success(res.data.message)
       fetchPatientList()
@@ -115,7 +113,7 @@ const handleDischarge = async (patientId) => {
 // 删除病人
 const handleDelete = async (id) => {
   try {
-    await axios.delete(`${API_URL}/patients/${id}`)
+    await apiClient.delete(`/patients/${id}`)
     ElMessage.success('删除成功')
     fetchPatientList()
   } catch (err) {
