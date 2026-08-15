@@ -82,16 +82,6 @@ npm run dev
 - 前端新增 `apiClient`（统一请求、自动携带 token、401 自动刷新重试）。
 - 前端路由改为懒加载，减小首屏包体积。
 
-## 提交到 GitHub（首次）
-```bash
-cd D:\vue3-hms
-git init
-git add .
-git commit -m "chore: reorganize project structure and docs"
-git branch -M main
-git remote add origin <你的仓库地址>
-git push -u origin main
-```
 
 ## 说明
 - 当前仓库已整理为单仓结构（`backend` + `frontend` + `database`），便于协作与部署。
